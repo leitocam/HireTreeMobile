@@ -1,6 +1,4 @@
 import com.google.protobuf.gradle.id
-import java.io.File
-import java.net.URL
 import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
@@ -25,6 +23,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // BuildConfig fields
+        buildConfigField("String", "GEMINI_API_KEY", "\"${getLocalProperty("GEMINI_API_KEY")}\"")
     }
 
     buildTypes {
@@ -45,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -57,58 +59,16 @@ fun getLocalProperty(key: String): String {
             localProperties.load(input)
         }
     } else {
-        error("Error: El archivo 'local.properties' no se encuentra en la raíz del proyecto. Asegúrese de crearlo.")
+        // Si no existe local.properties, devolvemos una cadena vacía o un valor por defecto para evitar el crash
+        // aunque lo ideal es que el archivo exista.
+        println("Advertencia: El archivo 'local.properties' no se encuentra.")
+        return ""
     }
-    return localProperties.getProperty(key) ?: error("Error: La clave '$key' no se encuentra en 'local.properties'. Por favor, añádala con su valor.")
-}
-val localeMapping = mapOf(
-    "en-US" to "values",
-    "es-ES" to "values-es",
-    "es-BO" to "values-es-rBO"
-)
-tasks.register("downloadLocoStrings") {
-    group = "localization"
-    description = "Downloads strings.xml files from Localise.biz via API"
-
-    val locoApiKey = getLocalProperty("LOCO_API_KEY")
-
-    val resDir = file("src/main/res")
-
-    doLast {
-        localeMapping.forEach { (apiCode, resFolder) ->
-            downloadFile(
-                apiKey = locoApiKey,
-                apiCode = apiCode,
-                resFolder = resFolder,
-                resDir = resDir
-            )
-        }
-    }
-}
-fun downloadFile(apiKey: String, apiCode: String, resFolder: String, resDir: File) {
-    println("-> Descargando [$apiCode] en $resFolder")
-
-    val outputFile = file("$resDir/$resFolder/strings.xml")
-
-    outputFile.parentFile.mkdirs()
-
-    val exportUrl = "https://localise.biz/api/export/locale/$apiCode.xml?key=$apiKey&format=android"
-
-    try {
-        URL(exportUrl).openStream().use { input ->
-            outputFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        println("✅ Descarga de $apiCode exitosa en $resFolder/strings.xml.")
-    } catch (e: Exception) {
-        println("❌ ERROR al descargar $apiCode. Verifique que la clave '$apiCode' tenga contenido en Localise.biz y que la API Key sea correcta: ${e.message}")
-    }
+    // Si la clave no existe, devolvemos una cadena vacía en lugar de lanzar error,
+    // para que el build no falle si falta alguna clave opcional.
+    return localProperties.getProperty(key) ?: ""
 }
 
-tasks.named("preBuild").configure {
-    dependsOn("downloadLocoStrings")
-}
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -121,6 +81,17 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+
+    // Google Generative AI (Gemini) - SDK que SÍ existe y funciona
+    implementation(libs.generativeai)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

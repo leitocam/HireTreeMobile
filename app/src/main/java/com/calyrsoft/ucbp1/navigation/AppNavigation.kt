@@ -8,7 +8,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.calyrsoft.ucbp1.features.auth.presentation.LoginScreen
+import com.calyrsoft.ucbp1.features.auth.presentation.SignUpScreen
 import com.calyrsoft.ucbp1.features.cardexample.presentation.CardScreen
+import com.calyrsoft.ucbp1.features.home.presentation.HomeScreen
+import com.calyrsoft.ucbp1.features.interview.presentation.InterviewResultsScreen
+import com.calyrsoft.ucbp1.features.interview.presentation.InterviewScreen
 import com.calyrsoft.ucbp1.features.dollar.presentation.DollarScreen
 import com.calyrsoft.ucbp1.features.github.presentation.GithubScreen
 import com.calyrsoft.ucbp1.features.movie.domain.model.MovieModel
@@ -53,15 +58,80 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
 
     NavHost(
         navController = navController,
-        startDestination = Screen.PopularMovies.route,
+        startDestination = Screen.Login.route,
         modifier = modifier
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onNavigateToSignUp = {
+                    navController.navigate(Screen.SignUp.route)
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Github.route) {
             GithubScreen(modifier = Modifier)
         }
         composable(Screen.Home.route) {
-
+            HomeScreen(
+                onStartInterview = {
+                    navController.navigate(Screen.Interview.route)
+                },
+                onViewHistory = {
+                    // TODO: Navigate to history when implemented
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
+
+        composable(Screen.Interview.route) {
+            InterviewScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onInterviewComplete = { scores ->
+                    navController.navigate(Screen.InterviewResults.route) {
+                        popUpTo(Screen.Interview.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.InterviewResults.route) {
+            // TODO: Pass scores via navigation argument in production
+            // For now, we'll need to retrieve from ViewModel
+            InterviewResultsScreen(
+                scores = emptyMap(), // Will be populated by ViewModel
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Profile.route) {
             ProfileScreen()
         }

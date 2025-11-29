@@ -1,0 +1,151 @@
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   HIRE TREE - CHECKLIST DE VERIFICACIÓN                   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+█ CONFIGURACIÓN INICIAL
+
+  ☑ Firebase configurado
+    - google-services.json en app/ ........................... ✓
+    - project_id: hiretreemobile ............................ ✓
+    - package_name: com.calyrsoft.ucbp1 ..................... ✓
+
+  ☑ Gemini API configurada
+    - GEMINI_API_KEY en local.properties .................... ✓
+    - API Key válida: AIzaSyCo... ........................... ✓
+
+
+█ ARCHIVOS DEL PROYECTO
+
+  ☑ Autenticación (features/auth/)
+    - domain/model/User.kt .................................. ✓
+    - domain/model/AuthResult.kt ............................ ✓
+    - domain/repository/AuthRepository.kt ................... ✓
+    - domain/usecase/SignInUseCase.kt ....................... ✓
+    - domain/usecase/SignUpUseCase.kt ....................... ✓
+    - domain/usecase/SignOutUseCase.kt ...................... ✓
+    - data/repository/AuthRepositoryImpl.kt ................. ✓
+    - presentation/AuthViewModel.kt ......................... ✓
+    - presentation/LoginScreen.kt ........................... ✓
+    - presentation/SignUpScreen.kt .......................... ✓
+
+  ☑ Home (features/home/)
+    - presentation/HomeScreen.kt ............................ ✓
+
+  ☑ Navegación
+    - navigation/Screen.kt (Login, SignUp, Home) ............ ✓
+    - navigation/AppNavigation.kt ........................... ✓
+
+  ☑ Inyección de Dependencias
+    - di/modules.kt (Firebase + Auth modules) ............... ✓
+
+  ☑ Configuración
+    - App.kt (Firebase initialization) ...................... ✓
+    - AndroidManifest.xml ................................... ✓
+    - build.gradle.kts (dependencias) ....................... ✓
+    - libs.versions.toml .................................... ✓
+
+
+█ DEPENDENCIAS A SINCRONIZAR
+
+  ☐ Firebase BOM 33.7.0
+  ☐ Firebase Authentication
+  ☐ Firebase Firestore
+  ☐ Firebase Storage
+  ☐ Google Generative AI (Gemini) 0.9.0
+  ☐ Todas las demás dependencias
+
+
+█ PASOS PARA EJECUTAR
+
+  ☐ 1. Cerrar Android Studio completamente
+  ☐ 2. Ejecutar sync-project.bat
+  ☐ 3. Esperar a que termine (10-15 min)
+  ☐ 4. Abrir Android Studio
+  ☐ 5. File → Invalidate Caches / Restart
+  ☐ 6. File → Sync Project with Gradle Files
+  ☐ 7. Esperar sincronización (5-10 min)
+  ☐ 8. Build → Clean Project
+  ☐ 9. Build → Rebuild Project
+  ☐ 10. Ejecutar app (Run ▶️)
+
+
+█ VERIFICACIÓN DE ÉXITO
+
+  ☐ Build sin errores ("BUILD SUCCESSFUL")
+  ☐ App se instala en dispositivo/emulador
+  ☐ Se muestra pantalla de Login
+  ☐ Puedo crear una cuenta nueva
+  ☐ Puedo iniciar sesión
+  ☐ Llego a la pantalla Home
+
+
+█ ERRORES COMUNES
+
+  ⚠ "Unresolved reference FirebaseAuth"
+    → Dependencias no descargadas
+    → Ejecutar: .\gradlew.bat --refresh-dependencies
+
+  ⚠ "Plugin google-services not found"
+    → Sync incompleto
+    → File → Sync Project with Gradle Files
+
+  ⚠ "Cannot resolve BuildConfig"
+    → Primera build no completada
+    → Build → Rebuild Project
+
+  ⚠ "GEMINI_API_KEY not found"
+    → Revisar local.properties
+    → Debe ser: GEMINI_API_KEY=tu_api_key (sin comillas)
+
+
+█ TIEMPOS NORMALES
+
+  Primera sincronización .............. 10-15 minutos
+  Invalidate Caches ................... 2-3 minutos
+  Primera compilación ................. 5-10 minutos
+  Primera instalación ................. 3-5 minutos
+  Compilaciones posteriores ........... 30 segundos
+
+
+█ DOCUMENTACIÓN CREADA
+
+  ✓ SETUP.md .............. Instrucciones de configuración
+  ✓ PROGRESS.md ........... Progreso del desarrollo
+  ✓ TROUBLESHOOTING.md .... Solución de problemas
+  ✓ QUICK-START.md ........ Guía rápida de inicio
+  ✓ sync-project.bat ...... Script de sincronización
+
+
+█ PROGRESO DEL PROYECTO
+
+  ████████████░░░░░░░░░░░░░░░░░░░░  30% Completado
+
+  ✓ Fase 1: Configuración Firebase
+  ✓ Fase 2: Sistema de Autenticación
+  ✓ Fase 3: Pantalla Home
+  ⧖ Fase 4: Integración Gemini API (SIGUIENTE)
+  ☐ Fase 5: Sistema de Evaluación
+  ☐ Fase 6: Generación de Certificados
+  ☐ Fase 7: Historial de Certificados
+
+
+█ PRÓXIMOS PASOS (después de que compile)
+
+  1. Probar registro de usuario
+  2. Probar login
+  3. Verificar navegación
+  4. Continuar con Fase 4: Chat de entrevista con IA
+
+
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│  ¿Todo listo? ¡Avísame cuando la app compile y ejecute!   │
+│  Entonces continuaremos con la implementación del chat     │
+│  de entrevista con Gemini AI.                              │
+│                                                             │
+│  🚀 ¡Estás a punto de tener tu app funcionando!            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+

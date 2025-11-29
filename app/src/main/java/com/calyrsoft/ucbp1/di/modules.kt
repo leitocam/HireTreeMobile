@@ -1,6 +1,19 @@
 package com.calyrsoft.ucbp1.di
 
 import com.calyrsoft.ucbp1.R
+import com.calyrsoft.ucbp1.features.auth.data.repository.AuthRepositoryImpl
+import com.calyrsoft.ucbp1.features.auth.domain.repository.AuthRepository
+import com.calyrsoft.ucbp1.features.auth.domain.usecase.SignInUseCase
+import com.calyrsoft.ucbp1.features.auth.domain.usecase.SignOutUseCase
+import com.calyrsoft.ucbp1.features.auth.domain.usecase.SignUpUseCase
+import com.calyrsoft.ucbp1.features.auth.presentation.AuthViewModel
+import com.calyrsoft.ucbp1.features.interview.data.api.GeminiService
+import com.calyrsoft.ucbp1.features.interview.data.repository.InterviewRepositoryImpl
+import com.calyrsoft.ucbp1.features.interview.domain.repository.InterviewRepository
+import com.calyrsoft.ucbp1.features.interview.domain.usecase.CompleteInterviewUseCase
+import com.calyrsoft.ucbp1.features.interview.domain.usecase.SendMessageUseCase
+import com.calyrsoft.ucbp1.features.interview.domain.usecase.StartInterviewUseCase
+import com.calyrsoft.ucbp1.features.interview.presentation.InterviewViewModel
 import com.calyrsoft.ucbp1.features.dollar.data.api.FirebaseService
 import com.calyrsoft.ucbp1.features.dollar.data.database.AppRoomDatabase
 import com.calyrsoft.ucbp1.features.dollar.data.datasource.DollarLocalDataSource
@@ -38,6 +51,8 @@ import com.calyrsoft.ucbp1.features.profile.data.repository.ProfileRepository
 import com.calyrsoft.ucbp1.features.profile.domain.repository.IProfileRepository
 import com.calyrsoft.ucbp1.features.profile.domain.usecase.GetProfileUseCase
 import com.calyrsoft.ucbp1.navigation.NavigationViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -61,6 +76,24 @@ object NetworkConstants {
 
 val appModule = module {
 
+    // Firebase
+    single { FirebaseAuth.getInstance() }
+    single { FirebaseFirestore.getInstance() }
+
+    // Auth Module
+    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    factory { SignInUseCase(get()) }
+    factory { SignUpUseCase(get()) }
+    factory { SignOutUseCase(get()) }
+    viewModel { AuthViewModel(get(), get(), get(), get()) }
+
+    // Interview Module
+    single { GeminiService() }
+    single<InterviewRepository> { InterviewRepositoryImpl(get(), get()) }
+    factory { StartInterviewUseCase(get()) }
+    factory { SendMessageUseCase(get()) }
+    factory { CompleteInterviewUseCase(get()) }
+    viewModel { InterviewViewModel(get(), get(), get()) }
 
     // OkHttpClient
     single {

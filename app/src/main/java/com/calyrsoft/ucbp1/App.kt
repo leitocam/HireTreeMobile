@@ -3,12 +3,17 @@ package com.calyrsoft.ucbp1
 import android.app.Application
 import com.calyrsoft.ucbp1.di.appModule
 import com.calyrsoft.ucbp1.features.logs.LogScheduler
+import com.google.firebase.FirebaseApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 class App: Application() {
     override fun onCreate() {
         super.onCreate()
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this)
+
         LogScheduler(this).schedulePeriodicaUpload()
         startKoin {
             androidContext(this@App)
