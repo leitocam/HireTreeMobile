@@ -92,8 +92,11 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation("com.google.firebase:firebase-config-ktx:21.6.3")
     implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
 
-    // Testing
+    // Add the dependency for the Firebase AI Logic library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-ai")
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     testImplementation("io.mockk:mockk:1.13.9")

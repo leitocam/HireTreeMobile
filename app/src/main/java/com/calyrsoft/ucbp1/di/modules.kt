@@ -69,7 +69,7 @@ val appModule = module {
     // ============================================
     // PROFILE MODULE
     // ============================================
-    single<IProfileRepository> { ProfileRepository() }
+    single<IProfileRepository> { ProfileRepository(get(), get()) }
     factory { GetProfileUseCase(get()) }
     viewModel { ProfileViewModel(get(), get()) }
 

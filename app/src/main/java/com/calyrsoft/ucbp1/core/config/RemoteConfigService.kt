@@ -1,6 +1,7 @@
 package com.calyrsoft.ucbp1.core.config
 
 import android.util.Log
+import com.calyrsoft.ucbp1.BuildConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.tasks.await
@@ -24,8 +25,8 @@ class RemoteConfigService {
         const val KEY_MAX_QUESTIONS = "max_questions"
 
         // Valores por defecto
-        private const val DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
-        private const val DEFAULT_USE_REAL_AI = false
+        private const val DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"  // Modelo más reciente
+        private const val DEFAULT_USE_REAL_AI = true  // Usar IA real por defecto
         private const val DEFAULT_MIN_MESSAGES = 5
         private const val DEFAULT_MAX_QUESTIONS = 7
     }
@@ -72,9 +73,17 @@ class RemoteConfigService {
 
     /**
      * Obtiene la API Key de Gemini
+     * Prioridad: Remote Config > BuildConfig (local.properties)
      */
     fun getGeminiApiKey(): String {
-        val apiKey = remoteConfig.getString(KEY_GEMINI_API_KEY)
+        val remoteApiKey = remoteConfig.getString(KEY_GEMINI_API_KEY)
+        val apiKey = if (remoteApiKey.isNotEmpty()) {
+            remoteApiKey
+        } else {
+            // Fallback a la API key de BuildConfig (local.properties)
+            BuildConfig.GEMINI_API_KEY
+        }
+
         Log.d(TAG, "Gemini API Key: ${if (apiKey.isNotEmpty()) "***${apiKey.takeLast(4)}" else "NO CONFIGURADA"}")
         return apiKey
     }

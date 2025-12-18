@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 /**
- * Servicio que maneja la comunicación con Gemini AI o el simulador
- * Usa Firebase Remote Config para determinar qué usar
+ * Servicio que maneja la comunicación con el simulador de entrevista
+ * IA REAL DESACTIVADA - Solo funciona con simulador
  */
 class GeminiService(
     private val remoteConfig: RemoteConfigService
 ) {
+
 
     private var questionIndex = 0
     private val simulatedQuestions = listOf(
@@ -27,42 +28,21 @@ class GeminiService(
     )
 
     fun startNewInterview(): String {
-        val useRealAI = remoteConfig.shouldUseRealAI()
-
         Log.d("GeminiService", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         Log.d("GeminiService", "🚀 Iniciando nueva entrevista")
-        Log.d("GeminiService", "   Modo: ${if (useRealAI) "IA REAL (Gemini)" else "SIMULADOR"}")
-        Log.d("GeminiService", "   Modelo: ${remoteConfig.getGeminiModel()}")
-        Log.d("GeminiService", "   API Key: ${if (remoteConfig.getGeminiApiKey().isNotEmpty()) "✅ Configurada" else "❌ No disponible"}")
+        Log.d("GeminiService", "   Modo: SIMULADOR (IA desactivada)")
         Log.d("GeminiService", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         questionIndex = 0
-
-        return if (useRealAI) {
-            startRealAIInterview()
-        } else {
-            startSimulatedInterview()
-        }
+        return startSimulatedInterview()
     }
 
     fun sendMessage(userMessage: String): Flow<String> = flow {
-        val useRealAI = remoteConfig.shouldUseRealAI()
-
-        if (useRealAI) {
-            sendMessageToRealAI(userMessage).collect { emit(it) }
-        } else {
-            sendMessageToSimulator(userMessage).collect { emit(it) }
-        }
+        sendMessageToSimulator(userMessage).collect { emit(it) }
     }
 
     suspend fun evaluateSkills(): Map<SoftSkill, Int> {
-        val useRealAI = remoteConfig.shouldUseRealAI()
-
-        return if (useRealAI) {
-            evaluateSkillsWithRealAI()
-        } else {
-            evaluateSkillsSimulated()
-        }
+        return evaluateSkillsSimulated()
     }
 
     // ========================================
@@ -105,39 +85,5 @@ class GeminiService(
         ).also {
             Log.d("GeminiService", "✅ Evaluación generada: $it")
         }
-    }
-
-    // ========================================
-    // MÉTODOS DE IA REAL (GEMINI)
-    // ========================================
-
-    private fun startRealAIInterview(): String {
-        Log.d("GeminiService", "🤖 Usando GEMINI AI REAL")
-
-        // TODO: Implementar conexión real con Gemini API
-        // Por ahora, retornamos un mensaje de fallback
-        return "¡Hola! Soy tu entrevistador virtual. Estoy aquí para conocerte mejor. Para comenzar, cuéntame un poco sobre ti: tu nombre, profesión y experiencia."
-    }
-
-    private fun sendMessageToRealAI(userMessage: String): Flow<String> = flow {
-        Log.d("GeminiService", "🤖 Enviando mensaje a Gemini AI...")
-
-        // TODO: Implementar llamada real a Gemini API
-        // Por ahora, usar simulador como fallback
-        delay(1500)
-
-        Log.w("GeminiService", "⚠️ Gemini API no implementada aún, usando fallback")
-        sendMessageToSimulator(userMessage).collect { emit(it) }
-    }
-
-    private suspend fun evaluateSkillsWithRealAI(): Map<SoftSkill, Int> {
-        Log.d("GeminiService", "🤖 Evaluando con Gemini AI...")
-
-        // TODO: Implementar evaluación real con Gemini
-        // Por ahora, usar simulador como fallback
-        delay(1000)
-
-        Log.w("GeminiService", "⚠️ Evaluación con Gemini no implementada, usando simulador")
-        return evaluateSkillsSimulated()
     }
 }
