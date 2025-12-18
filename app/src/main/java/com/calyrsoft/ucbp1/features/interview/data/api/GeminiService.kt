@@ -1,16 +1,19 @@
 package com.calyrsoft.ucbp1.features.interview.data.api
 
 import android.util.Log
+import com.calyrsoft.ucbp1.core.config.RemoteConfigService
 import com.calyrsoft.ucbp1.features.interview.domain.model.SoftSkill
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 /**
- * This service is now a 100% offline simulator.
- * It does not connect to any external API or use any AI libraries.
+ * Servicio que maneja la comunicación con Gemini AI o el simulador
+ * Usa Firebase Remote Config para determinar qué usar
  */
-class GeminiService {
+class GeminiService(
+    private val remoteConfig: RemoteConfigService
+) {
 
     private var questionIndex = 0
     private val simulatedQuestions = listOf(
@@ -24,34 +27,117 @@ class GeminiService {
     )
 
     fun startNewInterview(): String {
-        Log.d("GeminiService (Simulator)", "Starting new SIMULATED interview session...")
+        val useRealAI = remoteConfig.shouldUseRealAI()
+
+        Log.d("GeminiService", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.d("GeminiService", "🚀 Iniciando nueva entrevista")
+        Log.d("GeminiService", "   Modo: ${if (useRealAI) "IA REAL (Gemini)" else "SIMULADOR"}")
+        Log.d("GeminiService", "   Modelo: ${remoteConfig.getGeminiModel()}")
+        Log.d("GeminiService", "   API Key: ${if (remoteConfig.getGeminiApiKey().isNotEmpty()) "✅ Configurada" else "❌ No disponible"}")
+        Log.d("GeminiService", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
         questionIndex = 0
-        return "¡Hola! Bienvenido a la entrevista simulada. Para comenzar, por favor, dime tu nombre, profesión y edad."
+
+        return if (useRealAI) {
+            startRealAIInterview()
+        } else {
+            startSimulatedInterview()
+        }
     }
 
     fun sendMessage(userMessage: String): Flow<String> = flow {
-        // Simulate network delay to feel more realistic
-        delay(1200)
+        val useRealAI = remoteConfig.shouldUseRealAI()
 
-        if (questionIndex < simulatedQuestions.size) {
-            Log.d("GeminiService (Simulator)", "Sending question number $questionIndex")
-            emit(simulatedQuestions[questionIndex])
-            questionIndex++
+        if (useRealAI) {
+            sendMessageToRealAI(userMessage).collect { emit(it) }
         } else {
-            Log.d("GeminiService (Simulator)", "End of simulated questions.")
-            emit("Gracias, eso es todo por ahora. ENTRENVISTA_COMPLETADA")
+            sendMessageToSimulator(userMessage).collect { emit(it) }
         }
     }
 
     suspend fun evaluateSkills(): Map<SoftSkill, Int> {
-        Log.d("GeminiService (Simulator)", "Returning SIMULATED skills evaluation.")
-        delay(800) // Simulate evaluation processing time
+        val useRealAI = remoteConfig.shouldUseRealAI()
+
+        return if (useRealAI) {
+            evaluateSkillsWithRealAI()
+        } else {
+            evaluateSkillsSimulated()
+        }
+    }
+
+    // ========================================
+    // MÉTODOS DEL SIMULADOR
+    // ========================================
+
+    private fun startSimulatedInterview(): String {
+        Log.d("GeminiService", "📝 Usando SIMULADOR de entrevista")
+        questionIndex = 0
+        return "¡Hola! Bienvenido a la entrevista simulada. Para comenzar, por favor, dime tu nombre, profesión y edad."
+    }
+
+    private fun sendMessageToSimulator(userMessage: String): Flow<String> = flow {
+        Log.d("GeminiService", "💬 Simulador procesando mensaje: ${userMessage.take(50)}...")
+        delay(1200) // Simular delay de red
+
+        val maxQuestions = remoteConfig.getMaxQuestions()
+
+        if (questionIndex < simulatedQuestions.size && questionIndex < maxQuestions) {
+            Log.d("GeminiService", "📤 Enviando pregunta ${questionIndex + 1}/$maxQuestions")
+            emit(simulatedQuestions[questionIndex])
+            questionIndex++
+        } else {
+            Log.d("GeminiService", "✅ Fin de la entrevista simulada")
+            emit("Gracias, eso es todo por ahora. ENTRENVISTA_COMPLETADA")
+        }
+    }
+
+    private suspend fun evaluateSkillsSimulated(): Map<SoftSkill, Int> {
+        Log.d("GeminiService", "📊 Generando evaluación simulada...")
+        delay(800)
+
+        // Generar scores aleatorios pero realistas
         return mapOf(
-            SoftSkill.COMMUNICATION to 85,
-            SoftSkill.LEADERSHIP to 78,
-            SoftSkill.TEAMWORK to 92,
-            SoftSkill.PROBLEM_SOLVING to 81,
-            SoftSkill.ADAPTABILITY to 88
-        )
+            SoftSkill.COMMUNICATION to (75..95).random(),
+            SoftSkill.LEADERSHIP to (70..90).random(),
+            SoftSkill.TEAMWORK to (80..95).random(),
+            SoftSkill.PROBLEM_SOLVING to (75..90).random(),
+            SoftSkill.ADAPTABILITY to (80..95).random()
+        ).also {
+            Log.d("GeminiService", "✅ Evaluación generada: $it")
+        }
+    }
+
+    // ========================================
+    // MÉTODOS DE IA REAL (GEMINI)
+    // ========================================
+
+    private fun startRealAIInterview(): String {
+        Log.d("GeminiService", "🤖 Usando GEMINI AI REAL")
+
+        // TODO: Implementar conexión real con Gemini API
+        // Por ahora, retornamos un mensaje de fallback
+        return "¡Hola! Soy tu entrevistador virtual. Estoy aquí para conocerte mejor. Para comenzar, cuéntame un poco sobre ti: tu nombre, profesión y experiencia."
+    }
+
+    private fun sendMessageToRealAI(userMessage: String): Flow<String> = flow {
+        Log.d("GeminiService", "🤖 Enviando mensaje a Gemini AI...")
+
+        // TODO: Implementar llamada real a Gemini API
+        // Por ahora, usar simulador como fallback
+        delay(1500)
+
+        Log.w("GeminiService", "⚠️ Gemini API no implementada aún, usando fallback")
+        sendMessageToSimulator(userMessage).collect { emit(it) }
+    }
+
+    private suspend fun evaluateSkillsWithRealAI(): Map<SoftSkill, Int> {
+        Log.d("GeminiService", "🤖 Evaluando con Gemini AI...")
+
+        // TODO: Implementar evaluación real con Gemini
+        // Por ahora, usar simulador como fallback
+        delay(1000)
+
+        Log.w("GeminiService", "⚠️ Evaluación con Gemini no implementada, usando simulador")
+        return evaluateSkillsSimulated()
     }
 }

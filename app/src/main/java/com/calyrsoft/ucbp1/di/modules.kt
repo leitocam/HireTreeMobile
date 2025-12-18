@@ -1,5 +1,6 @@
 package com.calyrsoft.ucbp1.di
 
+import com.calyrsoft.ucbp1.core.config.RemoteConfigService
 import com.calyrsoft.ucbp1.features.auth.data.repository.AuthRepositoryImpl
 import com.calyrsoft.ucbp1.features.auth.domain.repository.AuthRepository
 import com.calyrsoft.ucbp1.features.auth.domain.usecase.SignInUseCase
@@ -42,6 +43,11 @@ val appModule = module {
     single { FirebaseFirestore.getInstance() }
 
     // ============================================
+    // REMOTE CONFIG
+    // ============================================
+    single { RemoteConfigService() }
+
+    // ============================================
     // AUTH MODULE
     // ============================================
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
@@ -53,7 +59,7 @@ val appModule = module {
     // ============================================
     // INTERVIEW MODULE (CORE - HireTree)
     // ============================================
-    single { GeminiService() }
+    single { GeminiService(get()) }
     single<InterviewRepository> { InterviewRepositoryImpl(get(), get()) }
     factory { StartInterviewUseCase(get()) }
     factory { SendMessageUseCase(get()) }

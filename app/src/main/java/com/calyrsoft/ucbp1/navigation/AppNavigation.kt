@@ -107,7 +107,10 @@ fun AppNavigation(
         // ============================================
 
         composable(Screen.Home.route) {
+            val authViewModel: AuthViewModel = koinViewModel()
+
             HomeScreen(
+                viewModel = authViewModel,
                 onStartInterview = {
                     navController.navigate(Screen.Interview.route)
                 },
@@ -126,6 +129,9 @@ fun AppNavigation(
                     navController.navigate("${Screen.InterviewResults.route}/$encodedScores")
                 },
                 onLogout = {
+                    // Cerrar sesión en Firebase primero
+                    authViewModel.signOut()
+                    // Luego navegar al login
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -138,24 +144,21 @@ fun AppNavigation(
             val interviewViewModel: InterviewViewModel = koinViewModel()
             val userState by authViewModel.uiState.collectAsState()
 
-            // Escuchar cuando la entrevista se completa para navegar
-            val interviewState by interviewViewModel.uiState.collectAsState()
-            LaunchedEffect(interviewState.isCompleted) {
-                if (interviewState.isCompleted) {
-                    interviewState.scores?.let { scores ->
-                        val scoresJson = Json.encodeToString(scores)
-                        val encodedScores = URLEncoder.encode(scoresJson, "UTF-8")
-                        navController.navigate("${Screen.InterviewResults.route}/$encodedScores") {
-                            popUpTo(Screen.Interview.route) { inclusive = true }
-                        }
-                    }
-                }
-            }
+            // ELIMINADO: LaunchedEffect que navegaba automáticamente
+            // Ahora el diálogo permanece abierto hasta que el usuario decida
 
             InterviewScreen(
                 viewModel = interviewViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onInterviewComplete = { scores ->
+                    // Solo navegar cuando usuario presiona "Ver Detalles" en el diálogo
+                    val scoresJson = Json.encodeToString(scores)
+                    val encodedScores = URLEncoder.encode(scoresJson, "UTF-8")
+                    navController.navigate("${Screen.InterviewResults.route}/$encodedScores") {
+                        popUpTo(Screen.Interview.route) { inclusive = true }
+                    }
                 }
             )
 

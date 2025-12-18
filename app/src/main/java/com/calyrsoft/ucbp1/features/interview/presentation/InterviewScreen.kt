@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.calyrsoft.ucbp1.features.interview.domain.model.ChatMessage
+import com.calyrsoft.ucbp1.features.interview.presentation.components.InterviewResultsDialog
 import com.calyrsoft.ucbp1.ui.theme.*
 import org.koin.androidx.compose.koinViewModel
 
@@ -190,6 +191,19 @@ fun InterviewScreen(
                     )
                 }
             }
+        }
+
+        // Diálogo de resultados
+        if (uiState.showResultsDialog && uiState.scores != null) {
+            InterviewResultsDialog(
+                scores = uiState.scores!!,
+                onDismiss = {
+                    viewModel.dismissResultsDialog()
+                },
+                onNavigateToResults = {
+                    onInterviewComplete(uiState.scores!!)
+                }
+            )
         }
     }
 }

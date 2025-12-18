@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Permisos para guardar archivos -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -13,11 +20,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Ucbp1">
 
-        <!-- Disable the automatic FirebaseInitProvider to force our manual initialization -->
-        <provider
-            android:name="com.google.firebase.provider.FirebaseInitProvider"
-            android:authorities="${applicationId}.firebaseinitprovider"
-            tools:node="remove" />
 
         <activity
             android:name=".MainActivity"
