@@ -20,6 +20,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(
     onNavigateToSignUp: () -> Unit,
     onLoginSuccess: () -> Unit,
+    onNavigateAsGuest: () -> Unit, // Added for guest navigation
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,7 +128,14 @@ fun LoginScreen(
             ) {
                 Text("¿No tienes cuenta? Regístrate")
             }
+
+            // Guest button
+            TextButton(
+                onClick = onNavigateAsGuest, 
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continuar como Invitado")
+            }
         }
     }
 }
-

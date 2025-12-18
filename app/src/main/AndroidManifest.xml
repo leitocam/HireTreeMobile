@@ -12,6 +12,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Ucbp1">
+
+        <!-- Disable the automatic FirebaseInitProvider to force our manual initialization -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            tools:node="remove" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

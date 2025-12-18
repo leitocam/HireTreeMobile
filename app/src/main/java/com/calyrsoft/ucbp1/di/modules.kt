@@ -87,13 +87,13 @@ val appModule = module {
     factory { SignOutUseCase(get()) }
     viewModel { AuthViewModel(get(), get(), get(), get()) }
 
-    // Interview Module
+    // Interview Module (Now using the Simulator)
     single { GeminiService() }
     single<InterviewRepository> { InterviewRepositoryImpl(get(), get()) }
     factory { StartInterviewUseCase(get()) }
     factory { SendMessageUseCase(get()) }
     factory { CompleteInterviewUseCase(get()) }
-    viewModel { InterviewViewModel(get(), get(), get()) }
+    viewModel { InterviewViewModel(get(), get(), get()) } // Corrected: 3 dependencies
 
     // OkHttpClient
     single {

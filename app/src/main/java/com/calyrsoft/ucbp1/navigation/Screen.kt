@@ -5,7 +5,7 @@ sealed class Screen(val route: String) {
     object SignUp: Screen("signup")
     object Home: Screen("home")
     object Interview: Screen("interview")
-    object InterviewResults: Screen("interviewResults")
+    object InterviewResults: Screen("interview_results") // Base route
     object Github: Screen("github")
     object Profile: Screen("profile")
 
@@ -14,4 +14,13 @@ sealed class Screen(val route: String) {
     object PopularMovies: Screen("popularMovies")
     object MovieDetail: Screen("movieDetail")
     object Atulado: Screen("atulado")
+
+    fun withArgs(vararg args: String): String {
+        return buildString {
+            append(route)
+            args.forEach { arg ->
+                append("/$arg")
+            }
+        }
+    }
 }

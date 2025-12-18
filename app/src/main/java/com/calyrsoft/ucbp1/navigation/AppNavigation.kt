@@ -2,12 +2,15 @@ package com.calyrsoft.ucbp1.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.calyrsoft.ucbp1.features.auth.presentation.AuthViewModel
 import com.calyrsoft.ucbp1.features.auth.presentation.LoginScreen
 import com.calyrsoft.ucbp1.features.auth.presentation.SignUpScreen
 import com.calyrsoft.ucbp1.features.cardexample.presentation.CardScreen
@@ -16,15 +19,19 @@ import com.calyrsoft.ucbp1.features.interview.presentation.InterviewResultsScree
 import com.calyrsoft.ucbp1.features.interview.presentation.InterviewScreen
 import com.calyrsoft.ucbp1.features.dollar.presentation.DollarScreen
 import com.calyrsoft.ucbp1.features.github.presentation.GithubScreen
+import com.calyrsoft.ucbp1.features.interview.domain.model.SoftSkill
+import com.calyrsoft.ucbp1.features.interview.presentation.InterviewViewModel
 import com.calyrsoft.ucbp1.features.movie.domain.model.MovieModel
 import com.calyrsoft.ucbp1.features.movie.presentation.MovieDetailScreen
 import com.calyrsoft.ucbp1.features.movie.presentation.PopularMoviesScreen
 import com.calyrsoft.ucbp1.features.profile.application.ProfileScreen
 import com.calyrsoft.ucbp1.features.webview.presentation.AtuladoScreen
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.koin.androidx.compose.koinViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.UUID
 
 @Composable
 fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, navController: NavHostController) {
@@ -70,6 +77,11 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
+                },
+                onNavigateAsGuest = { // Added guest navigation action
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -96,7 +108,17 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
                     navController.navigate(Screen.Interview.route)
                 },
                 onViewHistory = {
-                    // TODO: Navigate to history when implemented
+                    // Simulate a certificate for the user
+                    val fakeScores = mapOf(
+                        SoftSkill.COMMUNICATION to 90,
+                        SoftSkill.LEADERSHIP to 75,
+                        SoftSkill.TEAMWORK to 95,
+                        SoftSkill.PROBLEM_SOLVING to 80,
+                        SoftSkill.ADAPTABILITY to 88
+                    )
+                    val scoresJson = Json.encodeToString(fakeScores)
+                    val encodedScores = URLEncoder.encode(scoresJson, "UTF-8")
+                    navController.navigate(Screen.InterviewResults.withArgs(encodedScores))
                 },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -107,29 +129,66 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
         }
 
         composable(Screen.Interview.route) {
+            val authViewModel: AuthViewModel = koinViewModel()
+            val interviewViewModel: InterviewViewModel = koinViewModel()
+            val userState by authViewModel.uiState.collectAsState()
+
+            // Listen for interview completion to navigate
+            val interviewState by interviewViewModel.uiState.collectAsState()
+            LaunchedEffect(interviewState.isCompleted) {
+                if (interviewState.isCompleted) {
+                    interviewState.scores?.let { scores ->
+                        val scoresJson = Json.encodeToString(scores)
+                        val encodedScores = URLEncoder.encode(scoresJson, "UTF-un8")
+                        navController.navigate(Screen.InterviewResults.withArgs(encodedScores)) {
+                            popUpTo(Screen.Interview.route) { inclusive = true }
+                        }
+                    }
+                }
+            }
+
             InterviewScreen(
+                viewModel = interviewViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onInterviewComplete = { scores ->
-                    navController.navigate(Screen.InterviewResults.route) {
-                        popUpTo(Screen.Interview.route) { inclusive = true }
-                    }
                 }
             )
+
+            // Start the interview automatically. Use a guest ID if the user is not logged in.
+            LaunchedEffect(userState.isAuthenticated) {
+                val userId = userState.user?.uid ?: "guest_${UUID.randomUUID()}"
+                interviewViewModel.startInterview(userId)
+            }
         }
 
-        composable(Screen.InterviewResults.route) {
-            // TODO: Pass scores via navigation argument in production
-            // For now, we'll need to retrieve from ViewModel
-            InterviewResultsScreen(
-                scores = emptyMap(), // Will be populated by ViewModel
-                onNavigateHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+        composable(
+            route = "${Screen.InterviewResults.route}/{scores}",
+            arguments = listOf(navArgument("scores") { type = NavType.StringType })
+        ) {
+            val scoresJson = it.arguments?.getString("scores") ?: ""
+            if (scoresJson.isNotEmpty()) {
+                val decodedScores = URLDecoder.decode(scoresJson, "UTF-8")
+                val scores: Map<SoftSkill, Int> = Json.decodeFromString(decodedScores)
+
+                InterviewResultsScreen(
+                    scores = scores,
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                // Handle error case where scores are not passed
+                 InterviewResultsScreen(
+                    scores = emptyMap(),
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
         }
 
         composable(Screen.Profile.route) {
@@ -180,6 +239,4 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
             )
         }
     }
-
-
 }

@@ -1,5 +1,6 @@
 package com.calyrsoft.ucbp1.features.interview.data.repository
 
+import android.util.Log
 import com.calyrsoft.ucbp1.features.interview.data.api.GeminiService
 import com.calyrsoft.ucbp1.features.interview.domain.model.ChatMessage
 import com.calyrsoft.ucbp1.features.interview.domain.model.InterviewSession
@@ -22,7 +23,8 @@ class InterviewRepositoryImpl(
     override suspend fun startInterview(userId: String): Result<InterviewSession> {
         return try {
             val sessionId = UUID.randomUUID().toString()
-            val welcomeMessage = geminiService.startInterview()
+            // This now calls the simulator, which is instantaneous.
+            val welcomeMessage = geminiService.startNewInterview()
 
             val initialMessage = ChatMessage(
                 id = UUID.randomUUID().toString(),
@@ -38,30 +40,24 @@ class InterviewRepositoryImpl(
                 startTime = System.currentTimeMillis()
             )
 
-            // TODO: Save to Firestore cuando las reglas de seguridad estén configuradas
-            // Por ahora trabajamos solo en memoria
-            try {
-                sessionsCollection.document(sessionId)
-                    .set(session)
-                    .await()
-            } catch (e: Exception) {
-                // Ignorar error de Firestore por ahora
-                android.util.Log.w("InterviewRepository", "Could not save to Firestore (permissions), continuing in memory mode", e)
-            }
+            // NO LONGER SAVING TO FIRESTORE AT THE START FOR INSTANT SPEED
+            Log.d("InterviewRepository", "Started session in memory. Firestore save is skipped.")
 
             Result.success(session)
         } catch (e: Exception) {
+            Log.e("InterviewRepository", "Error in startInterview", e)
             Result.failure(e)
         }
     }
 
-    override suspend fun sendMessage(sessionId: String, message: String): Flow<String> {
+    override fun sendMessage(sessionId: String, message: String): Flow<String> {
         return geminiService.sendMessage(message)
     }
 
     override suspend fun saveMessage(sessionId: String, message: ChatMessage): Result<Unit> {
+        // The logic to save individual messages can remain, as it does not block the UI.
+        // It will silently fail if offline, which is acceptable for the guest mode.
         return try {
-            // Intentar guardar en Firestore pero no fallar si no se puede
             try {
                 val sessionDoc = sessionsCollection.document(sessionId)
                 val session = sessionDoc.get().await().toObject(InterviewSession::class.java)
@@ -71,10 +67,8 @@ class InterviewRepositoryImpl(
                     sessionDoc.update("messages", updatedMessages).await()
                 }
             } catch (e: Exception) {
-                // Ignorar error de Firestore - trabajar en memoria
-                android.util.Log.w("InterviewRepository", "Could not save message to Firestore", e)
+                Log.w("InterviewRepository", "Could not save message to Firestore", e)
             }
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -83,14 +77,10 @@ class InterviewRepositoryImpl(
 
     override suspend fun completeInterview(sessionId: String): Result<Map<SoftSkill, Int>> {
         return try {
-            // Evaluar con Gemini sin necesidad de leer de Firestore
-            // El historial está en el chat de Gemini
-            val scores = geminiService.evaluateSkills(emptyList())
-
-            // Intentar guardar en Firestore pero no fallar si no se puede
+            val scores = geminiService.evaluateSkills()
+            // The logic to save the final score can also remain.
             try {
-                val sessionDoc = sessionsCollection.document(sessionId)
-                sessionDoc.update(
+                sessionsCollection.document(sessionId).update(
                     mapOf(
                         "isCompleted" to true,
                         "endTime" to System.currentTimeMillis(),
@@ -98,9 +88,8 @@ class InterviewRepositoryImpl(
                     )
                 ).await()
             } catch (e: Exception) {
-                android.util.Log.w("InterviewRepository", "Could not save completion to Firestore", e)
+                Log.w("InterviewRepository", "Could not save completion to Firestore", e)
             }
-
             Result.success(scores)
         } catch (e: Exception) {
             Result.failure(e)
@@ -118,7 +107,6 @@ class InterviewRepositoryImpl(
                     trySend(null)
                     return@addSnapshotListener
                 }
-
                 val session = snapshot?.documents?.firstOrNull()?.toObject(InterviewSession::class.java)
                 trySend(session)
             }
@@ -126,4 +114,3 @@ class InterviewRepositoryImpl(
         awaitClose { listener.remove() }
     }
 }
-

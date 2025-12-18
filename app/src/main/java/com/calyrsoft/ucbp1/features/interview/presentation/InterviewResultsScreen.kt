@@ -8,32 +8,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.calyrsoft.ucbp1.features.interview.domain.model.SoftSkill
-import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InterviewResultsScreen(
     scores: Map<SoftSkill, Int>,
-    onNavigateHome: () -> Unit,
-    onGenerateCertificate: () -> Unit = {},
-    viewModel: InterviewViewModel = koinViewModel()
+    onNavigateHome: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val actualScores = uiState.scores ?: scores
-
-    if (actualScores.isEmpty()) {
-        // Mostrar loading si no hay scores
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+    if (scores.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
@@ -41,9 +34,7 @@ fun InterviewResultsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Resultados de la Entrevista") }
-            )
+            TopAppBar(title = { Text("Certificado de Soft Skills") })
         }
     ) { paddingValues ->
         Column(
@@ -53,93 +44,43 @@ fun InterviewResultsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Success icon
             Icon(
                 Icons.Default.CheckCircle,
                 contentDescription = "Completado",
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "¡Entrevista Completada!",
+                text = "¡Felicitaciones!",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Aquí están tus resultados de evaluación de soft skills",
+                text = "Has completado exitosamente la evaluación de habilidades blandas. Este es un resumen de tu desempeño:",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Score cards
-            actualScores.forEach { (skill, score) ->
-                SkillScoreCard(skill = skill, score = score)
-            }
-
-            // Promedio
-            val averageScore = actualScores.values.average().toInt()
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Puntuación Promedio",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "$averageScore/100",
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = getPerformanceLevel(averageScore),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+            // Skill cards with stars and recommendations
+            scores.forEach { (skill, score) ->
+                SkillCertificateCard(skill = skill, score = score)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Buttons
+            // Back to home button
             Button(
-                onClick = onGenerateCertificate,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = false // TODO: Habilitar en Fase 6
-            ) {
-                Text("Generar Certificado (Próximamente)")
-            }
-
-            OutlinedButton(
                 onClick = onNavigateHome,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
             ) {
-                Icon(
-                    Icons.Default.Home,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Volver al Inicio")
             }
@@ -148,80 +89,73 @@ fun InterviewResultsScreen(
 }
 
 @Composable
-fun SkillScoreCard(skill: SoftSkill, score: Int) {
-    var animationPlayed by remember { mutableStateOf(false) }
-    val animatedProgress by animateFloatAsState(
-        targetValue = if (animationPlayed) score / 100f else 0f,
-        animationSpec = tween(durationMillis = 1000),
-        label = "progress"
-    )
-
-    LaunchedEffect(Unit) {
-        animationPlayed = true
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+fun SkillCertificateCard(skill: SoftSkill, score: Int) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = skill.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = skill.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Text(
-                    text = "$score/100",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = getScoreColor(score)
-                )
-            }
+            Text(
+                text = skill.displayName,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            // Stars display
+            StarRating(score = score)
 
-            LinearProgressIndicator(
-                progress = { animatedProgress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
-                color = getScoreColor(score),
+            // Recommendation text
+            Text(
+                text = getRecommendation(skill, score),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 @Composable
-fun getScoreColor(score: Int): androidx.compose.ui.graphics.Color {
-    return when {
-        score >= 80 -> MaterialTheme.colorScheme.primary
-        score >= 60 -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.error
+fun StarRating(score: Int) {
+    val starCount = scoreToStars(score)
+    Row {
+        for (i in 1..5) {
+            Icon(
+                imageVector = if (i <= starCount) Icons.Filled.Star else Icons.Filled.StarBorder,
+                contentDescription = null,
+                tint = if (i <= starCount) Color(0xFFFFD700) else MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(32.dp)
+            )
+        }
     }
 }
 
-fun getPerformanceLevel(score: Int): String {
+fun scoreToStars(score: Int): Int {
     return when {
-        score >= 90 -> "Excelente desempeño"
-        score >= 80 -> "Muy buen desempeño"
-        score >= 70 -> "Buen desempeño"
-        score >= 60 -> "Desempeño adecuado"
-        else -> "Necesita mejorar"
+        score >= 90 -> 5
+        score >= 75 -> 4
+        score >= 60 -> 3
+        score >= 40 -> 2
+        else -> 1
     }
 }
 
+fun getRecommendation(skill: SoftSkill, score: Int): String {
+    val baseRecommendation = when (skill) {
+        SoftSkill.COMMUNICATION -> "Busca oportunidades para presentar tus ideas en público o liderar reuniones."
+        SoftSkill.LEADERSHIP -> "Considera tomar la iniciativa en pequeños proyectos o mentorizar a un compañero."
+        SoftSkill.TEAMWORK -> "Participa activamente en discusiones de equipo, asegurándote de escuchar todas las opiniones."
+        SoftSkill.PROBLEM_SOLVING -> "Practica desglosando problemas complejos en partes más pequeñas antes de buscar soluciones."
+        SoftSkill.ADAPTABILITY -> "Intenta exponerte a nuevas herramientas o métodos de trabajo, incluso si al principio te sientes incómodo."
+    }
+
+    val performanceLevel = when {
+        score >= 90 -> "Tu habilidad es excepcional. ¡Sigue así!"
+        score >= 75 -> "Demuestras una gran fortaleza en esta área."
+        score >= 60 -> "Tienes una base sólida. Con un poco de práctica, puedes destacar aún más."
+        else -> "Esta es un área con oportunidad de crecimiento."
+    }
+
+    return "$performanceLevel $baseRecommendation"
+}

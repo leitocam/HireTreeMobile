@@ -1,5 +1,8 @@
 package com.calyrsoft.ucbp1.features.interview.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class SoftSkill(val displayName: String, val description: String) {
     COMMUNICATION(
         displayName = "Comunicación",
@@ -22,4 +25,3 @@ enum class SoftSkill(val displayName: String, val description: String) {
         description = "Flexibilidad para ajustarse a cambios y nuevas situaciones"
     )
 }
-

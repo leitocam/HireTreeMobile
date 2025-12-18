@@ -11,6 +11,7 @@ import com.calyrsoft.ucbp1.features.interview.domain.usecase.StartInterviewUseCa
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -36,13 +37,10 @@ class InterviewViewModel(
 
     fun startInterview(userId: String) {
         viewModelScope.launch {
-            Log.d("InterviewViewModel", "startInterview called with userId: $userId")
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            val result = startInterviewUseCase(userId)
-            result.fold(
+            startInterviewUseCase(userId).fold(
                 onSuccess = { session ->
-                    Log.d("InterviewViewModel", "Interview started successfully. Session: ${session.id}, Messages: ${session.messages.size}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         sessionId = session.id,
@@ -50,7 +48,6 @@ class InterviewViewModel(
                     )
                 },
                 onFailure = { error ->
-                    Log.e("InterviewViewModel", "Error starting interview", error)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = error.message ?: "Error al iniciar entrevista"
@@ -62,67 +59,41 @@ class InterviewViewModel(
 
     fun sendMessage(message: String) {
         val sessionId = _uiState.value.sessionId
-
         if (sessionId == null) {
-            Log.e("InterviewViewModel", "sendMessage called but sessionId is NULL!")
-            Log.e("InterviewViewModel", "Current state: isLoading=${_uiState.value.isLoading}, messages=${_uiState.value.messages.size}")
-            _uiState.value = _uiState.value.copy(
-                error = "La entrevista no se ha iniciado correctamente. Por favor, vuelve e intenta de nuevo."
-            )
+            _uiState.value = _uiState.value.copy(error = "La sesión de entrevista no es válida.")
             return
         }
 
-        Log.d("InterviewViewModel", "sendMessage called with message: $message, sessionId: $sessionId")
-
         viewModelScope.launch {
-            // Agregar mensaje del usuario
-            val userMessage = ChatMessage(
-                id = UUID.randomUUID().toString(),
-                content = message,
-                isFromUser = true,
-                timestamp = System.currentTimeMillis()
-            )
-
-            val currentMessages = _uiState.value.messages + userMessage
+            val userMessage = ChatMessage(id = UUID.randomUUID().toString(), content = message, isFromUser = true, System.currentTimeMillis())
             _uiState.value = _uiState.value.copy(
-                messages = currentMessages,
+                messages = _uiState.value.messages + userMessage,
                 currentInput = "",
                 isAiTyping = true
             )
 
-            Log.d("InterviewViewModel", "User message added. Total messages: ${currentMessages.size}")
+            sendMessageUseCase(sessionId, message)
+                .catch { e ->
+                    Log.e("InterviewViewModel", "Error sending message", e)
+                    _uiState.value = _uiState.value.copy(error = "Error de comunicación con el simulador.", isAiTyping = false)
+                }
+                .collect { responseChunk ->
+                    val lastMessage = _uiState.value.messages.lastOrNull()
+                    if (lastMessage != null && !lastMessage.isFromUser) {
+                        val updatedMessage = lastMessage.copy(content = lastMessage.content + responseChunk)
+                        _uiState.value = _uiState.value.copy(messages = _uiState.value.messages.dropLast(1) + updatedMessage)
+                    } else {
+                        val aiMessage = ChatMessage(id = UUID.randomUUID().toString(), content = responseChunk, isFromUser = false, System.currentTimeMillis())
+                        _uiState.value = _uiState.value.copy(messages = _uiState.value.messages + aiMessage)
+                    }
 
-            // Enviar a Gemini y recibir respuesta
-            try {
-                sendMessageUseCase(sessionId, message).collect { aiResponse ->
-                    Log.d("InterviewViewModel", "AI response received: $aiResponse")
-
-                    val aiMessage = ChatMessage(
-                        id = UUID.randomUUID().toString(),
-                        content = aiResponse,
-                        isFromUser = false,
-                        timestamp = System.currentTimeMillis()
-                    )
-
-                    val updatedMessages = _uiState.value.messages + aiMessage
-                    _uiState.value = _uiState.value.copy(
-                        messages = updatedMessages,
-                        isAiTyping = false
-                    )
-
-                    // Verificar si la entrevista está completa
-                    if (aiResponse.contains("ENTREVISTA_COMPLETADA", ignoreCase = true)) {
-                        Log.d("InterviewViewModel", "Interview completed detected")
+                    if (responseChunk.contains("ENTRENVISTA_COMPLETADA", ignoreCase = true)) {
+                        _uiState.value = _uiState.value.copy(isAiTyping = false)
                         completeInterview()
+                    } else {
+                         _uiState.value = _uiState.value.copy(isAiTyping = false)
                     }
                 }
-            } catch (e: Exception) {
-                Log.e("InterviewViewModel", "Error sending message", e)
-                _uiState.value = _uiState.value.copy(
-                    error = "Error al enviar mensaje: ${e.message}",
-                    isAiTyping = false
-                )
-            }
         }
     }
 
@@ -136,8 +107,7 @@ class InterviewViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            val result = completeInterviewUseCase(sessionId)
-            result.fold(
+            completeInterviewUseCase(sessionId).fold(
                 onSuccess = { scores ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -156,20 +126,11 @@ class InterviewViewModel(
     }
 
     fun forceCompleteInterview() {
-        // Función para finalizar manualmente si el usuario lo desea
-        val messageCount = _uiState.value.messages.count { it.isFromUser }
-
-        if (messageCount >= 5) { // Al menos 5 respuestas
-            completeInterview()
-        } else {
-            _uiState.value = _uiState.value.copy(
-                error = "Necesitas responder al menos 5 preguntas para completar la entrevista"
-            )
-        }
+        // The condition has been removed. It will now always complete the interview.
+        completeInterview()
     }
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
 }
-

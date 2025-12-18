@@ -7,9 +7,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface InterviewRepository {
     suspend fun startInterview(userId: String): Result<InterviewSession>
-    suspend fun sendMessage(sessionId: String, message: String): Flow<String>
+    fun sendMessage(sessionId: String, message: String): Flow<String>
     suspend fun saveMessage(sessionId: String, message: ChatMessage): Result<Unit>
     suspend fun completeInterview(sessionId: String): Result<Map<SoftSkill, Int>>
     suspend fun getCurrentSession(userId: String): Flow<InterviewSession?>
 }
-

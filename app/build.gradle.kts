@@ -4,11 +4,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.google.protobuf)
-
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -79,6 +78,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
 
@@ -86,11 +86,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
-
-    // Google Generative AI (Gemini) - SDK que SÍ existe y funciona
-    implementation(libs.generativeai)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
