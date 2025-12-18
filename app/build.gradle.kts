@@ -79,6 +79,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
 
@@ -87,12 +90,21 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation("com.google.firebase:firebase-config-ktx:21.6.3")
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
 
+    // Testing
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation("io.mockk:mockk-android:1.13.9")
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.retrofit)

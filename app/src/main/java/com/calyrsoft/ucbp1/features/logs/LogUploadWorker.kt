@@ -3,31 +3,24 @@ package com.calyrsoft.ucbp1.features.logs
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.calyrsoft.ucbp1.features.movie.domain.usecase.FetchPopularMoviesUseCase
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
+/**
+ * Worker para subir logs periódicamente
+ * HireTree Mobile - Sistema de logging
+ */
 class LogUploadWorker(
     appContext: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(appContext, workerParameters) , KoinComponent {
-
-    private val fetchPopularMoviesUseCase: FetchPopularMoviesUseCase by inject()
+) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
     override suspend fun doWork(): Result {
-        //ejecutar instrucción para subir datos
-        println("ejecutar instrucción para subir datos")
-        return Result.success()
-//        val response = fetchPopularMoviesUseCase.invoke()
-//        response.fold(
-//            onFailure = {
-//                return Result.failure()
-//            },
-//            onSuccess = {
-//                println("datos subidos ${it.size}")
-//                return Result.success()
-//            }
-//        )
+        // Ejecutar instrucción para subir logs
+        println("LogUploadWorker: Subiendo logs...")
 
+        // TODO: Implementar subida de logs a servidor
+        // Por ahora solo retornamos éxito
+
+        return Result.success()
     }
 }

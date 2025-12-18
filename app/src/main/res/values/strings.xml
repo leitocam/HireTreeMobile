@@ -7,8 +7,8 @@
  Exported at: Fri, 14 Nov 2025 21:28:57 -0400
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="login_title">Are you sure you want to log out of Barik Mobile?</string>
-    <string name="app_name">ucbp2</string>
+    <string name="login_title">¿Estás seguro que deseas cerrar sesión en HireTree Mobile?</string>
+    <string name="app_name">HireTree Mobile</string>
     <string name="field_empty_text"></string>
     <string name="error_network"></string>
     <string name="error_server"></string>

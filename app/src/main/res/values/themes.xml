@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Main Theme -->
     <style name="Theme.Ucbp1" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash Screen Theme (API 31+) -->
+    <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.Ucbp1</item>
+    </style>
+
+    <!-- Splash Screen Theme Legacy (API < 31) -->
+    <style name="Theme.App.Starting" parent="Theme.Ucbp1">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

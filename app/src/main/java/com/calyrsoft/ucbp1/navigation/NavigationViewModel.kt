@@ -59,13 +59,13 @@ class NavigationViewModel : ViewModel() {
                         handleClickAction(clickAction)
                     }
                     else -> {
-                        Log.d("NavigationViewModel", "Navegación por defecto a Dollar")
-                        navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
+                        Log.d("NavigationViewModel", "Navegación por defecto a Home")
+                        navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
                     }
                 }
             } catch (e: Exception) {
                 Log.e("NavigationViewModel", "Error en handleDeepLink", e)
-                navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
+                navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
             }
         }
     }
@@ -73,9 +73,9 @@ class NavigationViewModel : ViewModel() {
     private fun handleClickAction(clickAction: String?) {
         when (clickAction) {
             "OPEN_PROFILE" -> navigateTo(Screen.Profile.route, NavigationOptions.REPLACE_HOME)
-            "OPEN_MOVIES" -> navigateTo(Screen.PopularMovies.route, NavigationOptions.REPLACE_HOME)
-            "OPEN_DOLLAR" -> navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
-            else -> navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
+            "OPEN_INTERVIEW" -> navigateTo(Screen.Interview.route, NavigationOptions.REPLACE_HOME)
+            "OPEN_HOME" -> navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
+            else -> navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
         }
     }
 
@@ -84,20 +84,14 @@ class NavigationViewModel : ViewModel() {
             "profile" -> {
                 navigateTo(Screen.Profile.route, NavigationOptions.REPLACE_HOME)
             }
-            "movies" -> {
-                navigateTo(Screen.PopularMovies.route, NavigationOptions.REPLACE_HOME)
+            "interview" -> {
+                navigateTo(Screen.Interview.route, NavigationOptions.REPLACE_HOME)
             }
-            "dollar" -> {
-                navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
-            }
-            "github" -> {
-                navigateTo(Screen.Github.route, NavigationOptions.REPLACE_HOME)
-            }
-            "card" -> {
-                navigateTo(Screen.CardExamples.route, NavigationOptions.REPLACE_HOME)
+            "home" -> {
+                navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
             }
             else -> {
-                navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
+                navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
             }
         }
     }
@@ -105,12 +99,9 @@ class NavigationViewModel : ViewModel() {
     private fun handleNavigationDestination(destination: String?) {
         when (destination?.uppercase()) {
             "PROFILE" -> navigateTo(Screen.Profile.route, NavigationOptions.REPLACE_HOME)
-            "MOVIES" -> navigateTo(Screen.PopularMovies.route, NavigationOptions.REPLACE_HOME)
-            "DOLLAR" -> navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
-            "GITHUB" -> navigateTo(Screen.Github.route, NavigationOptions.REPLACE_HOME)
-            "CARD" -> navigateTo(Screen.CardExamples.route, NavigationOptions.REPLACE_HOME)
+            "INTERVIEW" -> navigateTo(Screen.Interview.route, NavigationOptions.REPLACE_HOME)
             "HOME" -> navigateTo(Screen.Home.route, NavigationOptions.REPLACE_HOME)
-            else -> navigateTo(Screen.Dollar.route, NavigationOptions.CLEAR_BACK_STACK)
+            else -> navigateTo(Screen.Home.route, NavigationOptions.CLEAR_BACK_STACK)
         }
     }
 }

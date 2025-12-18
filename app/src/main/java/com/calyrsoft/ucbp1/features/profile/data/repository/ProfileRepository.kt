@@ -1,6 +1,6 @@
 package com.calyrsoft.ucbp1.features.profile.data.repository
 
-import com.calyrsoft.ucbp1.features.github.domain.model.UrlPath
+import com.calyrsoft.ucbp1.features.profile.domain.model.UrlPath
 import com.calyrsoft.ucbp1.features.login.domain.model.Email
 import com.calyrsoft.ucbp1.features.profile.domain.model.ProfileModel
 import com.calyrsoft.ucbp1.features.profile.domain.model.vo.Cellphone

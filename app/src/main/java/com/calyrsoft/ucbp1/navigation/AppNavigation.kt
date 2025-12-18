@@ -13,19 +13,12 @@ import androidx.navigation.navArgument
 import com.calyrsoft.ucbp1.features.auth.presentation.AuthViewModel
 import com.calyrsoft.ucbp1.features.auth.presentation.LoginScreen
 import com.calyrsoft.ucbp1.features.auth.presentation.SignUpScreen
-import com.calyrsoft.ucbp1.features.cardexample.presentation.CardScreen
 import com.calyrsoft.ucbp1.features.home.presentation.HomeScreen
+import com.calyrsoft.ucbp1.features.interview.domain.model.SoftSkill
 import com.calyrsoft.ucbp1.features.interview.presentation.InterviewResultsScreen
 import com.calyrsoft.ucbp1.features.interview.presentation.InterviewScreen
-import com.calyrsoft.ucbp1.features.dollar.presentation.DollarScreen
-import com.calyrsoft.ucbp1.features.github.presentation.GithubScreen
-import com.calyrsoft.ucbp1.features.interview.domain.model.SoftSkill
 import com.calyrsoft.ucbp1.features.interview.presentation.InterviewViewModel
-import com.calyrsoft.ucbp1.features.movie.domain.model.MovieModel
-import com.calyrsoft.ucbp1.features.movie.presentation.MovieDetailScreen
-import com.calyrsoft.ucbp1.features.movie.presentation.PopularMoviesScreen
 import com.calyrsoft.ucbp1.features.profile.application.ProfileScreen
-import com.calyrsoft.ucbp1.features.webview.presentation.AtuladoScreen
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.androidx.compose.koinViewModel
@@ -33,22 +26,28 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.UUID
 
+/**
+ * Navegación principal de HireTree Mobile
+ * Incluye solo las pantallas relacionadas con entrevistas y evaluación de soft skills
+ */
 @Composable
-fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, navController: NavHostController) {
-
+fun AppNavigation(
+    navigationViewModel: NavigationViewModel,
+    modifier: Modifier,
+    navController: NavHostController
+) {
     // Manejar navegación desde el ViewModel
     LaunchedEffect(Unit) {
         navigationViewModel.navigationCommand.collect { command ->
             when (command) {
                 is NavigationViewModel.NavigationCommand.NavigateTo -> {
                     navController.navigate(command.route) {
-                        // Configuración del back stack según sea necesario
                         when (command.options) {
                             NavigationOptions.CLEAR_BACK_STACK -> {
                                 popUpTo(0) // Limpiar todo el back stack
                             }
                             NavigationOptions.REPLACE_HOME -> {
-                                popUpTo(Screen.Dollar.route) { inclusive = true }
+                                popUpTo(Screen.Home.route) { inclusive = true }
                             }
                             else -> {
                                 // Navegación normal
@@ -68,6 +67,10 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
         startDestination = Screen.Login.route,
         modifier = modifier
     ) {
+        // ============================================
+        // AUTHENTICATION SCREENS
+        // ============================================
+
         composable(Screen.Login.route) {
             LoginScreen(
                 onNavigateToSignUp = {
@@ -78,7 +81,7 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
-                onNavigateAsGuest = { // Added guest navigation action
+                onNavigateAsGuest = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -99,16 +102,18 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
             )
         }
 
-        composable(Screen.Github.route) {
-            GithubScreen(modifier = Modifier)
-        }
+        // ============================================
+        // MAIN SCREENS (HireTree)
+        // ============================================
+
         composable(Screen.Home.route) {
             HomeScreen(
                 onStartInterview = {
                     navController.navigate(Screen.Interview.route)
                 },
                 onViewHistory = {
-                    // Simulate a certificate for the user
+                    // Navegar a historial (por implementar)
+                    // Por ahora muestra un resultado de ejemplo
                     val fakeScores = mapOf(
                         SoftSkill.COMMUNICATION to 90,
                         SoftSkill.LEADERSHIP to 75,
@@ -118,7 +123,7 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
                     )
                     val scoresJson = Json.encodeToString(fakeScores)
                     val encodedScores = URLEncoder.encode(scoresJson, "UTF-8")
-                    navController.navigate(Screen.InterviewResults.withArgs(encodedScores))
+                    navController.navigate("${Screen.InterviewResults.route}/$encodedScores")
                 },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -133,14 +138,14 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
             val interviewViewModel: InterviewViewModel = koinViewModel()
             val userState by authViewModel.uiState.collectAsState()
 
-            // Listen for interview completion to navigate
+            // Escuchar cuando la entrevista se completa para navegar
             val interviewState by interviewViewModel.uiState.collectAsState()
             LaunchedEffect(interviewState.isCompleted) {
                 if (interviewState.isCompleted) {
                     interviewState.scores?.let { scores ->
                         val scoresJson = Json.encodeToString(scores)
-                        val encodedScores = URLEncoder.encode(scoresJson, "UTF-un8")
-                        navController.navigate(Screen.InterviewResults.withArgs(encodedScores)) {
+                        val encodedScores = URLEncoder.encode(scoresJson, "UTF-8")
+                        navController.navigate("${Screen.InterviewResults.route}/$encodedScores") {
                             popUpTo(Screen.Interview.route) { inclusive = true }
                         }
                     }
@@ -154,7 +159,8 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
                 }
             )
 
-            // Start the interview automatically. Use a guest ID if the user is not logged in.
+            // Iniciar la entrevista automáticamente
+            // Usar un ID de invitado si el usuario no está logueado
             LaunchedEffect(userState.isAuthenticated) {
                 val userId = userState.user?.uid ?: "guest_${UUID.randomUUID()}"
                 interviewViewModel.startInterview(userId)
@@ -166,77 +172,31 @@ fun AppNavigation(navigationViewModel: NavigationViewModel, modifier: Modifier, 
             arguments = listOf(navArgument("scores") { type = NavType.StringType })
         ) {
             val scoresJson = it.arguments?.getString("scores") ?: ""
-            if (scoresJson.isNotEmpty()) {
-                val decodedScores = URLDecoder.decode(scoresJson, "UTF-8")
-                val scores: Map<SoftSkill, Int> = Json.decodeFromString(decodedScores)
 
-                InterviewResultsScreen(
-                    scores = scores,
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
-                        }
-                    }
-                )
+            val scores: Map<SoftSkill, Int> = if (scoresJson.isNotEmpty()) {
+                try {
+                    val decodedScores = URLDecoder.decode(scoresJson, "UTF-8")
+                    Json.decodeFromString(decodedScores)
+                } catch (e: Exception) {
+                    emptyMap()
+                }
             } else {
-                // Handle error case where scores are not passed
-                 InterviewResultsScreen(
-                    scores = emptyMap(),
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
-                        }
-                    }
-                )
+                emptyMap()
             }
+
+            InterviewResultsScreen(
+                scores = scores,
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Screen.Profile.route) {
             ProfileScreen()
         }
-
-        composable(Screen.CardExamples.route) { CardScreen() }
-
-        composable(Screen.Dollar.route) {
-            DollarScreen()
-        }
-
-        composable(Screen.PopularMovies.route) {
-            PopularMoviesScreen( navigateToDetail  = { movie ->
-                val movieJson = Json.encodeToString(movie)
-                val encodeMovieJson = URLEncoder.encode(movieJson, "UTF-8")
-
-                navController.navigate(
-                    "${Screen.MovieDetail.route}/${encodeMovieJson}")
-            })
-        }
-
-        composable(
-            route = "${Screen.MovieDetail.route}/{movie}",
-            arguments = listOf(
-                navArgument("movie") { type = NavType.StringType }
-            )
-            ) {
-            val movieJson = it.arguments?.getString("movie") ?: ""
-            val movieDecoded = URLDecoder.decode(movieJson, "UTF-8")
-            val movie = Json.decodeFromString<MovieModel>(movieDecoded)
-
-            MovieDetailScreen(
-                movie = movie,
-                back = {
-                    navController.popBackStack()
-                })
-        }
-
-        composable(
-            Screen.Atulado.route
-        ) {
-            AtuladoScreen(
-                "https://www.bisa.com/atulado",
-                postData = null,
-                modifier = modifier,
-                shouldStopBrowsing = { true }
-            )
-        }
     }
 }
+

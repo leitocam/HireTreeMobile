@@ -1,19 +1,16 @@
 package com.calyrsoft.ucbp1.navigation
 
 sealed class Screen(val route: String) {
+    // Auth screens
     object Login: Screen("login")
     object SignUp: Screen("signup")
+
+    // Main screens (HireTree)
     object Home: Screen("home")
     object Interview: Screen("interview")
-    object InterviewResults: Screen("interview_results") // Base route
-    object Github: Screen("github")
+    object InterviewResults: Screen("interview_results")
     object Profile: Screen("profile")
 
-    object CardExamples: Screen("card")
-    object Dollar: Screen("dollar")
-    object PopularMovies: Screen("popularMovies")
-    object MovieDetail: Screen("movieDetail")
-    object Atulado: Screen("atulado")
 
     fun withArgs(vararg args: String): String {
         return buildString {

@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -55,6 +56,9 @@ class MainActivity : ComponentActivity() {
     private var currentIntent: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install Splash Screen antes de super.onCreate()
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
         currentIntent = intent
 
@@ -135,14 +139,14 @@ class MainActivity : ComponentActivity() {
         val navBackStackEntry by
         navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
-        val notShowTopBar =
-            (currentDestination?.route?.startsWith(Screen.MovieDetail.route) == true) ||
-            (currentDestination?.route?.startsWith(Screen.Atulado.route) == true)
+
+        // Siempre mostrar el top bar en HireTree
+        val notShowTopBar = false
+
         val navigationDrawerItems = listOf(
-            NavigationDrawer.Profile,
-            NavigationDrawer.Dollar,
-            NavigationDrawer.Movie,
-            NavigationDrawer.Github
+            NavigationDrawer.Home,
+            NavigationDrawer.Interview,
+            NavigationDrawer.Profile
         )
         val drawerState =
             rememberDrawerState(
